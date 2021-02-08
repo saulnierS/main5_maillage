@@ -35,20 +35,35 @@ om=omega.maillage_gmsh(h=0.5)
 msh.GmshToMesh("omega.msh",om)
 
 # Triplets
-t = common.Triplets()
-fem_p1.Mass(msh, 2, 2, t)
-fem_p1.Stiffness(msh, 2, 2, t)
+tM = common.Triplets()
+tD = common.Triplets()
+fem_p1.Mass(msh, 2, 2, tM)
+verif_mass=np.ones(msh.Npts)
+
+fem_p1.Stiffness(msh, 2, 2, tD)
 b = np.zeros((msh.Npts))
 fem_p1.Integrale(msh, 2, 2, f, b, 2)
-fem_p1.Dirichlet(msh, dim=1, physical_tag=3, B=b, triplets=t, g=diri)
+# fem_p1.Dirichlet(msh, dim=1, physical_tag=3, B=b, triplets=tM, g=diri)
 
 
 # # Résolution
 # A= fem_p1.build_matrix(t.data)
-A = (sparse.coo_matrix(t.data)).tocsr()
-U = linalg.spsolve(A, b)
-print(A.toarray())
+AM = (sparse.coo_matrix(tM.data)).tocsr()
+AD = (sparse.coo_matrix(tD.data)).tocsr()
+print(verif_mass)
+vect1=np.matmul(verif_mass,AM)
+print(np.matmul(vect1,np.transpose(verif_mass)))
 
+UM = linalg.spsolve(AM, b)
+UD = linalg.spsolve(AD, b)
+print("A masse")
+print(AM.toarray())
+print("A rigidité")
+print(AD.toarray())
+print("U masse")
+print(UM)
+print("U rigidité")
+print(UD)
 
 # # Visualisation
 x= [pt.x for pt in msh.points]
@@ -68,6 +83,10 @@ Uref = np.zeros((msh.Npts))
 for pt in msh.points:
   I = int(pt.id)
   Uref[I] = g(pt.x, pt.y)
+
+# print("U",U)
+# print("Uref",Uref)
+# print("b",b)
 plt.tricontourf(x, y, connectivity, Uref, 12)
 plt.colorbar()
 plt.show()

@@ -104,9 +104,12 @@ def stiffness_elem(element, triplets):
 
 			#area = 1/2*det(jac) so 2*area=det(jac)
 			#D(i,j)=det(jac)* 
-			res_dot_B=np.dot(np.transpose(element.B()),element.B())
-			res_dot_tmp = np.dot(res_dot_B, gradPhi(element,i))
-			res_final_dot = np.dot(np.transpose(gradPhi(element,j)),res_dot_tmp)
+			res_dot_B=np.matmul(np.transpose(element.B()),element.B())
+			res_dot_tmp = np.matmul(res_dot_B, gradPhi(element,i))
+			res_final_dot = np.matmul(np.transpose(gradPhi(element,j)),res_dot_tmp)
+			# res_dot_B=np.dot(np.transpose(element.B()),element.B())
+			# res_dot_tmp = np.dot(res_dot_B, gradPhi(element,i))
+			# res_final_dot = np.dot(np.transpose(gradPhi(element,j)),res_dot_tmp)
 			val = 2*element.area()*res_final_dot*element.area()
 			# print(val[0][0])
 			triplets.append(I,J,val[0][0])
@@ -134,12 +137,13 @@ def phiRef(i:int, param):
 		return param[1] 
 	return 0
 
-def interpol_geo(element):
+def interpol_geo(element,m):
 	res = [0,0]
 	_, pts_param, pts_phys=element.gaussPoint()
 	for i in range(0,len(element.points)):
-		res[0]=res[0] + phiRef(i, pts_param[i])*pts_phys[i][0]
-		res[0]=res[0] + phiRef(i, pts_param[i])*pts_phys[i][1]
+		# x du point de gauss passage de xsi, eta à x, y
+		res[0]=res[0] + phiRef(i, pts_param[m])*pts_phys[i][0]
+		res[1]=res[1] + phiRef(i, pts_param[m])*pts_phys[i][1]
 	return res
 
 
@@ -150,14 +154,15 @@ def Integrale(msh, dim:int, physical_tag:int, f, B, order=2):
 	for ind_elem in range(0,len(elements)):
 		# print(elements[ind_elem])
 		w, pts_param, pts_phys = elements[ind_elem].gaussPoint()
-		x_interpol=interpol_geo(elements[ind_elem])
 		res=0
 		for i in range(0,3):
+			I = loc2glob(elements[ind_elem],i)
 			for m in range(0,len(w)):
+				x_interpol=interpol_geo(elements[ind_elem],m)
 				# somme ( somme ( somme (pds_m * f(x(xsi_m,eta_m)* phi(xsi_m,eta_m)))))
-				res=res+w[m]*f(x_interpol[0],x_interpol[1])*phiRef(i, pts_param[m])
+				res=res+w[m]*elements[ind_elem].area()*2*f(x_interpol[0],x_interpol[1])*phiRef(i, pts_param[m])
 			# print(type(elements[ind_elem].points[i].id))
-			B[elements[ind_elem].points[i].id] = B[elements[ind_elem].points[i].id] +res
+			B[I] = B[I] +res
 
 	return 0
 
