@@ -3,6 +3,7 @@ import gmsh
 import sys
 import math
 import omega
+import numpy as np
 
 gmsh.initialize(sys.argv)
 model = gmsh.model
@@ -213,7 +214,7 @@ class Triangle (Mesh):
 		b = self.points[2].x-self.points[0].x
 		c = self.points[1].y-self.points[0].y
 		d = self.points[2].y-self.points[0].y
-		return 1/2*(a*d-c*d)
+		return np.abs(1/2*(a*d-c*b))
 
 	def jac(self):
 		#####################  

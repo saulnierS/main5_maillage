@@ -201,7 +201,7 @@ def Dirichlet(msh, dim:int , physical_tag:int , g, triplets, B):
 	pts=msh.getPoints(dim,physical_tag)
 
 	for ind_s in range(0,len(pts)):
-		sommet = pts[ind_s].id
+		sommet = loc2glob(pts, ind_s)
 
 		for j in range(0,triplets.size_data):
 			#all val = triplets.data[0]
