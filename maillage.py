@@ -240,7 +240,7 @@ class Triangle (Mesh):
 		b = self.points[2].x-self.points[0].x
 		c = self.points[1].y-self.points[0].y
 		d = self.points[2].y-self.points[0].y
-		return np.array([[d,-c],[-b,a]])
+		return 1/(a*d-c*b)*(np.array([[d,-c],[-b,a]]))
 	#pour la quadrature
 	def gaussPoint(self,order=2):
 		poids = [1/6]

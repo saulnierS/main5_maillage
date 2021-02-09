@@ -31,7 +31,7 @@ def diri(x,y):
 
 # Maillage
 msh = maillage.Mesh()
-om=omega.maillage_gmsh(h=0.5)
+om=omega.maillage_gmsh(h=0.1)
 msh.GmshToMesh("omega.msh",om)
 
 # Triplets
@@ -60,7 +60,6 @@ for tri in msh.triangles:
   connectivity.append([ p.id for p in tri.points]) 
 
 plt.figure("U")
-# print(U)
 plt.tricontourf(x, y, connectivity, U, 12)
 plt.colorbar()
 
@@ -70,7 +69,10 @@ Uref = np.zeros((msh.Npts))
 for pt in msh.points:
   I = int(pt.id)
   Uref[I] = g(pt.x, pt.y)
-
+print("U")
+print(U[:5])
+print("Uref")
+print(Uref[:5])
 # print("U",U)
 # print("Uref",Uref)
 # print("b",b)

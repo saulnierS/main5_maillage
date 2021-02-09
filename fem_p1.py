@@ -72,7 +72,7 @@ def B(element):
 	b = J[0][1]
 	c = J[1][0]
 	d = J[1][1]
-	return np.array([[d,-c],[-b,a]])
+	return 1/(a*d-c*b)*np.array([[d,-c],[-b,a]])
 
 def gradPhi(element, i:int):
 	# if i==0:
@@ -154,15 +154,14 @@ def Integrale(msh, dim:int, physical_tag:int, f, B, order=2):
 	for ind_elem in range(0,len(elements)):
 		# print(elements[ind_elem])
 		w, pts_param, pts_phys = elements[ind_elem].gaussPoint()
-		res=0
 		for i in range(0,3):
 			I = loc2glob(elements[ind_elem],i)
 			for m in range(0,len(w)):
 				x_interpol=interpol_geo(elements[ind_elem],m)
 				# somme ( somme ( somme (pds_m * f(x(xsi_m,eta_m)* phi(xsi_m,eta_m)))))
-				res=res+w[m]*elements[ind_elem].area()*2*f(x_interpol[0],x_interpol[1])*phiRef(i, pts_param[m])
+				B[I]=B[I]+w[m]*elements[ind_elem].area()*2*f(x_interpol[0],x_interpol[1])*phiRef(i, pts_param[m])
+							
 			# print(type(elements[ind_elem].points[i].id))
-			B[I] = B[I] +res
 
 	return 0
 
@@ -211,7 +210,7 @@ def Dirichlet(msh, dim:int , physical_tag:int , g, triplets, B):
 			J=triplets.data[1][1][j]
 			if sommet==I:
 				triplets.data[0][j]=0
-			B[sommet] = g(pts[ind_s].x,pts[ind_s].y)
+				B[sommet] = g(pts[ind_s].x,pts[ind_s].y)
 
 		triplets.append(sommet,sommet,1)
 
