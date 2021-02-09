@@ -31,7 +31,7 @@ def diri(x,y):
 
 # Maillage
 msh = maillage.Mesh()
-om=omega.maillage_gmsh(h=0.5)
+om=omega.maillage_gmsh(h=0.1)
 msh.GmshToMesh("omega.msh",om)
 
 # Triplets
@@ -44,7 +44,6 @@ b = np.zeros((msh.Npts))
 fem_p1.Integrale(msh, 2, 2, f, b, 2)
 fem_p1.Dirichlet(msh, dim=1, physical_tag=3, B=b, triplets=t, g=diri)
 fem_p1.Dirichlet(msh, dim=1, physical_tag=1, B=b, triplets=t, g=diri)
-print(b)
 
 # # Résolution
 # A= fem_p1.build_matrix(t.data)
@@ -71,9 +70,9 @@ for pt in msh.points:
   I = int(pt.id)
   Uref[I] = g(pt.x, pt.y)
 print("U")
-print(U[:5])
+print(U[:10])
 print("Uref")
-print(Uref[:5])
+print(Uref[:10])
 # print("U",U)
 # print("Uref",Uref)
 # print("b",b)

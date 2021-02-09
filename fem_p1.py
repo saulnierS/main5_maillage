@@ -107,7 +107,9 @@ def stiffness_elem(element, triplets):
 			res_1=np.matmul(np.transpose(gradPhi(element,j)),np.transpose(element.B()))
 			res_2 = np.matmul(element.B(), gradPhi(element,i))
 			res_final = np.matmul(res_1,res_2)
-			val = 2*element.area()*res_final[0][0]*element.area()
+			# De= det(jac)*(grad phi j)^T*B^T*B*(grad phi i)*aire du triangle
+			# val= 2*element.area()*res_final[0][0]*element.area()
+			val = element.area()*res_final[0][0]
 			# print(val[0][0])
 			triplets.append(I,J,val)
 
