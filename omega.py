@@ -22,9 +22,9 @@ def maillage_gmsh(h=1):
 	
 	# Create Point 
 	p1 = model.geo.addPoint(0,0,0, h)
-	p2 = model.geo.addPoint(0,5,0, h)
-	p3 = model.geo.addPoint(5,5,0, h)
-	p4 = model.geo.addPoint(5,0,0, h)
+	p2 = model.geo.addPoint(0,1,0, h)
+	p3 = model.geo.addPoint(1,1,0, h)
+	p4 = model.geo.addPoint(1,0,0, h)
 	
 	
 	# Create line

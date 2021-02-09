@@ -104,15 +104,12 @@ def stiffness_elem(element, triplets):
 
 			#area = 1/2*det(jac) so 2*area=det(jac)
 			#D(i,j)=det(jac)* 
-			res_dot_B=np.matmul(np.transpose(element.B()),element.B())
-			res_dot_tmp = np.matmul(res_dot_B, gradPhi(element,i))
-			res_final_dot = np.matmul(np.transpose(gradPhi(element,j)),res_dot_tmp)
-			# res_dot_B=np.dot(np.transpose(element.B()),element.B())
-			# res_dot_tmp = np.dot(res_dot_B, gradPhi(element,i))
-			# res_final_dot = np.dot(np.transpose(gradPhi(element,j)),res_dot_tmp)
-			val = 2*element.area()*res_final_dot*element.area()
+			res_1=np.matmul(np.transpose(gradPhi(element,j)),np.transpose(element.B()))
+			res_2 = np.matmul(element.B(), gradPhi(element,i))
+			res_final = np.matmul(res_1,res_2)
+			val = 2*element.area()*res_final[0][0]*element.area()
 			# print(val[0][0])
-			triplets.append(I,J,val[0][0])
+			triplets.append(I,J,val)
 
 	return triplets
 
@@ -200,14 +197,14 @@ def Dirichlet(msh, dim:int , physical_tag:int , g, triplets, B):
 	pts=msh.getPoints(dim,physical_tag)
 
 	for ind_s in range(0,len(pts)):
-		sommet = loc2glob(pts, ind_s)
+		sommet = pts[ind_s].id
 
 		for j in range(0,triplets.size_data):
 			#all val = triplets.data[0]
 			#all I = triplets.data[1][0]
 			#all J = triplets.data[1][1]
 			I=triplets.data[1][0][j]
-			J=triplets.data[1][1][j]
+			# J=triplets.data[1][1][j]
 			if sommet==I:
 				triplets.data[0][j]=0
 				B[sommet] = g(pts[ind_s].x,pts[ind_s].y)

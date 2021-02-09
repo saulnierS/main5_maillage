@@ -31,7 +31,7 @@ def diri(x,y):
 
 # Maillage
 msh = maillage.Mesh()
-om=omega.maillage_gmsh(h=0.1)
+om=omega.maillage_gmsh(h=0.5)
 msh.GmshToMesh("omega.msh",om)
 
 # Triplets
@@ -42,7 +42,8 @@ verif_mass=np.ones(msh.Npts)
 fem_p1.Stiffness(msh, 2, 2, t)
 b = np.zeros((msh.Npts))
 fem_p1.Integrale(msh, 2, 2, f, b, 2)
-# fem_p1.Dirichlet(msh, dim=1, physical_tag=3, B=b, triplets=tM, g=diri)
+fem_p1.Dirichlet(msh, dim=1, physical_tag=3, B=b, triplets=t, g=diri)
+fem_p1.Dirichlet(msh, dim=1, physical_tag=1, B=b, triplets=t, g=diri)
 print(b)
 
 # # Résolution
@@ -76,6 +77,7 @@ print(Uref[:5])
 # print("U",U)
 # print("Uref",Uref)
 # print("b",b)
+
 plt.tricontourf(x, y, connectivity, Uref, 12)
 plt.colorbar()
 plt.show()
