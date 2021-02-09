@@ -16,6 +16,7 @@ import fem_p1
 import gmsh
 import matplotlib.pyplot as plt
 import omega
+import appartement as appart
 
 
 gmsh.initialize(sys.argv)
@@ -26,24 +27,33 @@ def g(x,y):
 def f(x,y):
   return g(x,y)*(2*np.pi*np.pi +1 )
 
-def diri(x,y):
-  return 0
+def diri_rad(x,y):
+  return 25
+def diri_fen(x,y):
+  return -10
+ 
 
 # Maillage
 msh = maillage.Mesh()
-om=omega.maillage_gmsh(h=0.1)
+om=appart.maillage_gmsh(h=0.1)
 msh.GmshToMesh("omega.msh",om)
+
+# mur 		 dim 1 tag 1
+# radiateur  dim 1 tag 2
+# fenetre    dim 1 tag 3
+# omega      dim 2 tag 4
 
 # Triplets
 t = common.Triplets()
-fem_p1.Mass(msh, 2, 2, t)
+fem_p1.Mass(msh, 2, 4, t)
 verif_mass=np.ones(msh.Npts)
 
-fem_p1.Stiffness(msh, 2, 2, t)
+fem_p1.Stiffness(msh, 2, 4, t)
 b = np.zeros((msh.Npts))
-fem_p1.Integrale(msh, 2, 2, f, b, 2)
-fem_p1.Dirichlet(msh, dim=1, physical_tag=3, B=b, triplets=t, g=diri)
-fem_p1.Dirichlet(msh, dim=1, physical_tag=1, B=b, triplets=t, g=diri)
+
+fem_p1.Integrale(msh, dim=2, physical_tag=4, f=f, B=b)
+fem_p1.Dirichlet(msh, dim=1, physical_tag=2, B=b, triplets=t, g=diri_rad)
+fem_p1.Dirichlet(msh, dim=1, physical_tag=3, B=b, triplets=t, g=diri_fen)
 
 # # Résolution
 # A= fem_p1.build_matrix(t.data)
@@ -69,10 +79,7 @@ Uref = np.zeros((msh.Npts))
 for pt in msh.points:
   I = int(pt.id)
   Uref[I] = g(pt.x, pt.y)
-print("U")
-print(U[:10])
-print("Uref")
-print(Uref[:10])
+
 # print("U",U)
 # print("Uref",Uref)
 # print("b",b)
