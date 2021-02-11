@@ -147,7 +147,7 @@ def maillage_gmsh(h=1):
 	gmsh.write("appartement.msh")
 	# print(gmsh.model.mesh.getNodes())
 	# Launch the GUI (not mandatory at all)
-	gmsh.fltk.run();
+	# gmsh.fltk.run();
 	return gmsh
 
 gmsh.finalize()

@@ -51,7 +51,7 @@ verif_mass=np.ones(msh.Npts)
 fem_p1.Stiffness(msh, 2, 4, t)
 b = np.zeros((msh.Npts))
 
-fem_p1.Integrale(msh, dim=2, physical_tag=4, f=f, B=b)
+#fem_p1.Integrale(msh, dim=2, physical_tag=4, f=f, B=b)
 fem_p1.Dirichlet(msh, dim=1, physical_tag=2, B=b, triplets=t, g=diri_rad)
 fem_p1.Dirichlet(msh, dim=1, physical_tag=3, B=b, triplets=t, g=diri_fen)
 
