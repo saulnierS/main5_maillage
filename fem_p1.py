@@ -1,42 +1,62 @@
-#################################
-# fonction des elements finis P1
-#################################
-
-from scipy.sparse import coo_matrix
-import maillage
-import numpy as np
-import common
-import gmsh
+#****************************************
+# FEM P1: solveur
+#****************************************
+# Robin Clément & Saulnier Solène
+# MAIN5  02/2021
+#****************************************
+#-----------
+# Packages
+#-----------
+# system
 import sys
-from scipy import sparse
-from scipy.sparse import linalg
+# maths
+import numpy as np
+# maillage
+import gmsh
+# files  
+import common
+import maillage
 
 
-def build_matrix(data):
-	return coo_matrix(data).tocsr()
+############
+# Functions
+############
 
-###################
-# matrice de masse
-###################
+##############
+# mass matrix
+##############
 def loc2glob(element, ind:int):
+	"""Convert local coordonate of the mesh in global coordonate
+	element: triangle or segment of the mesh
+	ind: local ind
+
+    Returns global ind: int."""
 	return element.points[ind].id
 
 
 def mass_ref(i:int,j:int):
+	"""reference matrix mass
+	i=int
+    j=int
+    (i,j)=coordonate
 	###################
 	# 1/12  1/24  1/24
 	# 1/24  1/12  1/24
 	# 1/24  1/24  1/12
 	###################
+    Returns global ind: int."""
 	if i==j:
 		return 1/12
 	return 1/24
 
-# element = Segment ou Triangle
-# triplets = Triplets
-# alpha un scalaire optionnel
-def mass_elem(element, triplets, alpha =1.):
 
+def mass_elem(element, triplets, alpha =1.):
+	"""compute elementary mass matrix
+	element : Triangle
+    triplets :Triplets
+    alpha: scalar optionnal
+    Returns 0
+    Warning, triplets which is pass in argument is modified during the function"""
 	for i in range(0,3):
 		I = loc2glob(element,i)
 
@@ -44,17 +64,21 @@ def mass_elem(element, triplets, alpha =1.):
 			J = loc2glob(element,j)
 
 			#area = 1/2*det(jac) so 2*area=det(jac)
-			val = mass_ref(i,j)*element.area()*2
+			val = mass_ref(i,j)*element.area()*2*alpha
 
 			triplets.append(I,J,val)
 
-	return triplets
+	return 0
 
-# msh = Mesh
-# dim = int
-# physical_tag = int
-# triplets = Triplets
+
 def Mass(msh, dim:int, physical_tag:int, triplets):
+	""" compute mass matrix
+    msh : Mesh
+    dim : int
+    physical_tag : int
+    triplets : Triplets
+    Returns 0
+    Warning, triplets which is pass in argument is modified during the function"""
 	triangles=msh.getElements(dim,physical_tag)
 	for i in range(0,len(triangles)):
 		mass_elem(triangles[i], triplets)
@@ -62,11 +86,13 @@ def Mass(msh, dim:int, physical_tag:int, triplets):
 	return 0
 
 #########################
-# matrice de rigidité
+# stiffness matrix
 #########################
-
-#il y a deja un B dans la classe mesh pour un triangle
+ 
 def B(element):
+	""" Compute the matrix B = (jacT)-1
+    element : Triangle or segment
+    Returns matrix B : array"""
 	J = element.jac()
 	a = J[0][0]
 	b = J[0][1]
@@ -74,13 +100,15 @@ def B(element):
 	d = J[1][1]
 	return 1/(a*d-c*b)*np.array([[d,-c],[-b,a]])
 
+
 def gradPhi(element, i:int):
-	# if i==0:
-	# 	return np.array([-1,-1])
-	# if i==1:
-	# 	return np.array([1,0])
-	# if i==2:
-	# 	return np.array([0,1])
+	""" compute phi gradient
+	element: Triangle
+	i : int chose the right phi wanted
+    phi_0 = 1-eta-xsi
+    phi_1 = xsi
+    phi_2 = eta
+    Returns the gradient of phi function : array """
 	if i==0:
 		return np.array([[-1],[-1]])
 	if i==1:
@@ -90,11 +118,12 @@ def gradPhi(element, i:int):
 	return -1
 
 
-
-# element = Segment ou Triangle
-# triplets = Triplets
-# alpha un scalaire optionnel
 def stiffness_elem(element, triplets):
+	"""compute elementary stiffness matrix
+	element : Triangle
+    triplets :Triplets
+    Returns 0
+    Warning, triplets which is pass in argument is modified during the function"""
 
 	for i in range(0,3):
 		I = loc2glob(element,i)
@@ -102,8 +131,7 @@ def stiffness_elem(element, triplets):
 		for j in range(0,3):
 			J = loc2glob(element,j)
 
-			#area = 1/2*det(jac) so 2*area=det(jac)
-			#D(i,j)=det(jac)* 
+			#area = 1/2*det(jac) so 2*area=det(jac) 
 			res_1=np.matmul(np.transpose(gradPhi(element,j)),np.transpose(element.B()))
 			res_2 = np.matmul(element.B(), gradPhi(element,i))
 			res_final = np.matmul(res_1,res_2)
@@ -113,14 +141,20 @@ def stiffness_elem(element, triplets):
 			# print(val[0][0])
 			triplets.append(I,J,val)
 
-	return triplets
+	return 0
 
 
-def Stiffness(msh, dim:int, physical_tag:int, t):
-
+def Stiffness(msh, dim:int, physical_tag:int, triplets):
+	""" compute stiffness matrix
+    msh : Mesh
+    dim : int
+    physical_tag : int
+    triplets : Triplets
+    Returns 0
+    Warning, triplets which is pass in argument is modified during the function"""
 	triangles = msh.getElements(dim,physical_tag)
 	for i in range(0,len(triangles)):
-		stiffness_elem(triangles[i], t)
+		stiffness_elem(triangles[i], triplets)
 
 	return 0
 
@@ -128,6 +162,13 @@ def Stiffness(msh, dim:int, physical_tag:int, t):
 # Quadratures
 ################################
 def phiRef(i:int, param):
+	""" compute the value of phi ref depends on param
+    i : int (the phi wanted)
+    param : array (coordonate (xsi,eta) or (x,y))
+    phi_0 = 1-eta-xsi
+    phi_1 = xsi
+    phi_2 = eta
+    Returns the value of the phi ref : float."""
 	if i==0:
 		return 1-param[0]-param[1]
 	if i==1:
@@ -137,6 +178,10 @@ def phiRef(i:int, param):
 	return 0
 
 def interpol_geo(element,m):
+	""" compute the point xm used in the quadratures formula
+    element : Segment
+    m : int
+    Returns the value of xm : array."""
 	res = [0,0]
 	_, pts_param, pts_phys=element.gaussPoint()
 	for i in range(0,len(element.points)):
@@ -148,6 +193,15 @@ def interpol_geo(element,m):
 
 
 def Integrale(msh, dim:int, physical_tag:int, f, B, order=2):
+	""" compute the integrale by interpolation
+    msh : Mesh
+    dim : int
+    physical_tag : int
+    f : function 
+    B : array (second member Ax=b)
+    order : int (order of the method)
+    Returns 0
+    Warning, triplets and B which is pass in argument is modified during the function"""
 	elements = msh.getElements(dim,physical_tag)
 	# print(B[0])
 	for ind_elem in range(0,len(elements)):
@@ -159,8 +213,6 @@ def Integrale(msh, dim:int, physical_tag:int, f, B, order=2):
 				x_interpol=interpol_geo(elements[ind_elem],m)
 				# somme ( somme ( somme (pds_m * f(x(xsi_m,eta_m)* phi(xsi_m,eta_m)))))
 				B[I]=B[I]+w[m]*elements[ind_elem].area()*2*f(x_interpol[0],x_interpol[1])*phiRef(i, pts_param[m])
-							
-			# print(type(elements[ind_elem].points[i].id))
 
 	return 0
 
@@ -195,7 +247,15 @@ def Integrale(msh, dim:int, physical_tag:int, f, B, order=2):
 # 	return 0
 
 def Dirichlet(msh, dim:int , physical_tag:int , g, triplets, B):
-
+	""" add the dirichlet condition
+    msh : Mesh
+    dim : int
+    physical_tag : int
+    g : int (dirichlet condition value)
+    triplets : Triplets
+    B : array (second member Ax=b)
+    Returns the new matrix with dirichlet condition: triplets.
+    Warning, triplets and B which is pass in argument is modified during the function"""
 	pts=msh.getPoints(dim,physical_tag)
 
 	for ind_s in range(0,len(pts)):

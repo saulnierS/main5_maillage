@@ -35,3 +35,6 @@ resultat:
 #Execution:
 
 	dans un terminal, entrez la commande : ``python3 resolution.py``
+	la finesse du maillage peut etre passer en argmument: ``python3 resolution.py h`` où h est un nombre entier ou flottant
+
+	(attention mettre un point exemple: ``python3 resolution.py 0.5`` et non une virgule)
