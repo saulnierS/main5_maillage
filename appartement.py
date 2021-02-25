@@ -1,32 +1,36 @@
-
+#****************************************
+# Omega
+#****************************************
+# Robin Clément & Saulnier Solène
+# MAIN5  02/2021
+#****************************************
+#-----------
+# Packages
+#-----------
 import gmsh
 import sys
 import math
 import omega
-#################################
-# maillage de omega avec gmsh
-#################################
 
+#-----------------------------
+# mesh omega with gmsh
+#-----------------------------
 gmsh.initialize(sys.argv)
 		
 # Create a model and name it "omega"
 model = gmsh.model
 model.add("omega")
+
+
 def maillage_gmsh(h=1):
+	"""Mesh the domain (omega)
+	h: float (mesh fineness)
+	Return the model of gmsh"""
 
 	# Ask GMSH to display information in the terminal
 	gmsh.option.setNumber("General.Terminal", 1)
-	
-	# Parameters
-	window_size = 1
-	radiateur_size = 1
-	wall_size = 0.5
 
-	# Create Point
-
-
-	points=[]
-
+	# Create points
 	# left
 	p1=model.geo.addPoint(0,0,0, h)
 	p2=model.geo.addPoint(0,2,0, h)
@@ -72,7 +76,7 @@ def maillage_gmsh(h=1):
 	p35=model.geo.addPoint(4,0,0, h)
 	p36=model.geo.addPoint(2,0,0, h)
 
-	
+	#Create lines
 	m=[]#mur
 	f=[]#fenetre
 	r=[]#radiateur
@@ -122,11 +126,6 @@ def maillage_gmsh(h=1):
 	r.append(model.geo.addLine(p35,p36))
 	m.append(model.geo.addLine(p36,p1))
 
-	# Create line
-	# lines=[]
-	# for i in range(0,len(points)-1):
-	# 	lines.append(model.geo.addLine(points[i],points[i+1]))
-
 	
 	# Curveloop and Surface
 	curveloop = model.geo.addCurveLoop(m+r+f)
@@ -145,7 +144,6 @@ def maillage_gmsh(h=1):
 	model.mesh.generate(2)
 	# Write on disk
 	gmsh.write("appartement.msh")
-	# print(gmsh.model.mesh.getNodes())
 	# Launch the GUI (not mandatory at all)
 	# gmsh.fltk.run();
 	return gmsh

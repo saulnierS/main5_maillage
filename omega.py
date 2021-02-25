@@ -1,17 +1,30 @@
+#****************************************
+# omega simple case (square)
+#****************************************
+# Robin Clément & Saulnier Solène
+# MAIN5  02/2021
+#****************************************
+#-----------
+# Packages
+#-----------
 import gmsh
 import sys
 import math
 import omega
-#################################
-# maillage de omega avec gmsh
-#################################
 
+#-----------------------------
+# mesh omega with gmsh
+#-----------------------------
 gmsh.initialize(sys.argv)
 		
 # Create a model and name it "omega"
 model = gmsh.model
 model.add("omega")
+
 def maillage_gmsh(h=1):
+	"""Mesh the domain (omega)
+	h: float (mesh fineness)
+	Return the model of gmsh"""
 
 	# Ask GMSH to display information in the terminal
 	gmsh.option.setNumber("General.Terminal", 1)
@@ -49,7 +62,6 @@ def maillage_gmsh(h=1):
 	model.mesh.generate(2)
 	# Write on disk
 	gmsh.write("omega.msh")
-	# print(gmsh.model.mesh.getNodes())
 	# Launch the GUI (not mandatory at all)
 	# gmsh.fltk.run();
 	return gmsh

@@ -1,19 +1,28 @@
-
+#************************************************
+# class to have gmsh information more accessible
+#************************************************
+# Robin Clément & Saulnier Solène
+# MAIN5  02/2021
+#************************************************
+#-----------
+# Packages
+#-----------
 import gmsh
 import sys
 import math
 import omega
 import numpy as np
 
+#-----------
+# GMSH
+#-----------
 gmsh.initialize(sys.argv)
 model = gmsh.model
 model.add("omega")
 
-##############################################
-# recuperation gmsh info dans une classe mesh
-##############################################
-import numpy as np
-
+#------------
+# class Mesh
+#------------
 class Mesh:
 	"""class mesh"""
 	def __str__(self):
@@ -46,7 +55,8 @@ class Mesh:
 		return chaine
 
 	def GmshToMesh(self,filename,gmsh):
-		"""build the maillage from filename.msh"""
+		"""build the maillage from filename.msh
+		initilize the class mesh"""
 
 		# name check
 		assert filename[-4:]==".msh"
@@ -125,6 +135,10 @@ class Mesh:
 
 		
 	def getElements(self,dim,physical_tag):
+		"""get the element
+		dim : int
+		physical_tag : int
+		Return the element"""
 		res=[]
 		if dim == 1: 
 			for i in range(0,len(self.segments)):
@@ -137,6 +151,10 @@ class Mesh:
 		return res
 
 	def getPoints(self,dim,physical_tag):
+		"""get the list of points
+	    dim : int
+		physical_tag : int
+		Return the list of the element"""
 		res=[]
 		val=[]
 		if dim == 1: 
@@ -187,11 +205,6 @@ class Segment (Mesh):
 			chaine = chaine + "\n \t [id_pts: "+str(self.points[i].id)+"] (x: "+str(self.points[i].x)+", y: "+str(self.points[i].y)+")"
 		return chaine
 
-	def area(self):
-		return 0
-
-	def jac(self):
-		return 0
 
 class Triangle (Mesh):
 	"""class triangle"""
@@ -209,7 +222,13 @@ class Triangle (Mesh):
 			chaine = chaine + "\n \t [id_pts: "+str(self.points[i].id)+"] (x: "+str(self.points[i].x)+", y: "+str(self.points[i].y)+")"
 		return chaine
 
+
+	###################################
+    # variable change : compute matrix
+    ###################################
 	def area(self):
+		"""compute the area of the triangle
+		Return value of area: int"""
 		a = self.points[1].x-self.points[0].x
 		b = self.points[2].x-self.points[0].x
 		c = self.points[1].y-self.points[0].y
@@ -217,46 +236,55 @@ class Triangle (Mesh):
 		return np.abs(1/2*(a*d-c*b))
 
 	def jac(self):
+		"""compute the jacobien
 		#####################  
 		# J= (x1-x0  x2-x0) #
 		#    (y1-y0  y2-y0) #
 		#####################
+		Return jacobien : array"""
 
 		a = self.points[1].x-self.points[0].x
 		b = self.points[2].x-self.points[0].x
 		c = self.points[1].y-self.points[0].y
 		d = self.points[2].y-self.points[0].y
 		return np.array([[a,b],[c,d]])
-	#pour le calcul de la matrice de rigidite
 	
 	def B(self):
+		""" compute B matrix to compute stiffness matrix
 		#####################
 		# B= JT^-1  
 		# B= (y2-y0  y0-y1) #
 		#    (x0-x2  x1-x0) #
 		#####################
-
+		Return B matrix"""
 		a = self.points[1].x-self.points[0].x
 		b = self.points[2].x-self.points[0].x
 		c = self.points[1].y-self.points[0].y
 		d = self.points[2].y-self.points[0].y
 		return 1/(a*d-c*b)*(np.array([[d,-c],[-b,a]]))
-	#pour la quadrature
+
+
+	################################
+    # Quadratures
+    ################################
 	def gaussPoint(self,order=2):
-		poids = [1/6]
+		""" compute the weight, parametric coordonate (eta, xsi), physique coordonate (x,y) 
+		order : int (precision, order of the method)
+		Return differents parameters to compute the quadrature"""
+		w = [1/6]
 
 		if order==1:
-			poids = [1/6]
+			w = [1/6]
 			param = [(1/3,1/3)]
 
 		if order==2:
-			poids = [1/6,1/6,1/6]
+			w = [1/6,1/6,1/6]
 			param = [(1/6,1/6),(4/6,1/6),(1/6,4/6)]
 
 		pts=[]
 		for i in range(0,len(self.points)):
 			pts.append((self.points[i].x,self.points[i].y))
-		return (poids, param, pts)
+		return (w, param, pts)
 
 
 gmsh.finalize()

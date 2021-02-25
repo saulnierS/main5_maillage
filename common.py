@@ -1,10 +1,16 @@
+#*******************************************
+# class to fill in matrix
+#*******************************************
+# Robin Clément & Saulnier Solène
+# MAIN5  02/2021
+#*******************************************
+
 class Triplets:
     def __init__(self):
         self.data = ([], ([], []))
         self.size_data = 0
 
     def __str__(self):
-    	#revoir affichage
     	chaine="\tsize: "+str(self.size_data)+"\n"
     	for i in range (0,self.size_data):
     		chaine=chaine+"val:"+str(self.data[0][i])
@@ -13,6 +19,9 @@ class Triplets:
 
 
     def append(self, I, J, val):
+    	"""
+    		ajoute un triplet ou une contribution à la matrice
+    	"""
     	self.size_data = self.size_data+1
     	self.data[0].append(val)
     	self.data[1][0].append(I)
