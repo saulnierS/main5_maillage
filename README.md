@@ -2,7 +2,7 @@
 
 Ce projet est implémenté avec python3, il utilise principalement gmsh, matplotlib, scipy, numpy
 
-#Fichiers
+# Fichiers
 
 omega:
 
@@ -32,7 +32,7 @@ resultat:
 	
 	U.png: solution après la résolution
 
-#Execution:
+# Execution:
 
 	dans un terminal, entrez la commande : ``python3 resolution.py``
 	la finesse du maillage peut etre passer en argmument: ``python3 resolution.py h`` où h est un nombre entier ou flottant
